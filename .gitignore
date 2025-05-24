@@ -1,0 +1,54 @@
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+build-Number.properties
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+.idea/
+*.iml
+*.iws
+*.ipr
+*.ids
+*.orig
+/out/
+.idea_modules/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/datasources.xml
+.idea/dataSources.local.xml
+.idea/shelf/
+
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.lnk
+~$*
+
+/postgres_data/
+*.sql~       # Временные SQL-файлы
+*.bak        # Резервные копии БД
+*.dump       # Дампы БД
+/pgdata/     # Директория данных (если используется локально)
+/postgresql.conf  # Локальные настройки (если не в Docker)
+/pg_hba.conf
+
+docker-compose.override.yml
+*.env
+
+*.log
+logs/
+
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+README_Exception.md
+README_Bankcards.md
+
+temp/
+tmp/

@@ -1,0 +1,75 @@
+#
+# application.yml — главный конфигурационный файл Spring Boot.
+
+Что нужно сделать:
+  - Указать настройки подключения к базе данных.
+  - Указать порт приложения.
+  - Настроить параметры безопасности и JWT.
+  - Включить Swagger UI.
+
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/bankdb
+    username: bankuser
+    password: bankpass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 5000
+  jpa:
+    hibernate:
+      use-new-id-generator-mappings: false
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate.format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    change-log: classpath:db/migration/master.xml
+  config:
+    import: optional:application-${ENV:dev}.yml
+
+server:
+  port: 8080
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:798jZ7MNcEwhBnHa+Cy9ngHhccGHS1Ra+GnuT5hCdXzs2payX9OAmYc9qSAzvu6bRmkprguPkFokT6h9rGxk7A==}
+    expiration: ${JWT_EXPIRATION:86400000}
+
+springdoc:
+  enabled: ${ENABLE_SWAGGER:true}
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  info:
+    title: Bank Cards API
+    version: 1.0.0
+    description: API для управления банковскими картами
+
+---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+spring:
+  config:
+    activate:
+      on-profile: prod
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION:86400000}
+springdoc:
+  enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+  logging:
+    level:
+      org.springframework.security: DEBUG
+      com.example.bankcards: DEBUG
