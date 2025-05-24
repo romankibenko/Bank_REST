@@ -14,4 +14,5 @@ public interface CardRepository extends
     Optional<Card> findByIdAndUserId(Long cardId, Long userId);
     Optional<Card> findByNumberAndUserId(String number, Long userId);
     Optional<Card> findByNumber(String number);
+    boolean existsByNumber(String encryptedNumber);
 }

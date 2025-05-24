@@ -34,6 +34,8 @@ services:
       JWT_SECRET: "798jZ7MNcEwhBnHa+Cy9ngHhccGHS1Ra+GnuT5hCdXzs2payX9OAmYc9qSAzvu6bRmkprguPkFokT6h9rGxk7A=="
       JWT_EXPIRATION: "86400000"
       SPRING_PROFILES_ACTIVE: prod
+      CARD_ENCRYPTION_SECRET: =RyWsEjq6PMHq8I56glveboyh08Ww2i7m
+      CARD_ENCRYPTION_SALT: 8d3a1f7e4b9c0a2d6e5f8c9b1a0d7e2f
 
     depends_on:
       db:

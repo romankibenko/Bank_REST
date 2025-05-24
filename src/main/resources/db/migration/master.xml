@@ -8,4 +8,5 @@
     <include file="db/migration/V1__Create_tables.sql" relativeToChangelogFile="false"/>
     <include file="db/migration/V2__Add_relations.sql" relativeToChangelogFile="false"/>
     <include file="db/migration/V3__Seed_data.sql" relativeToChangelogFile="false"/>
+    <include file="db/migration/V4__Encrypt_existing_card_numbers.sql"/>
 </databaseChangeLog>

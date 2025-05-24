@@ -81,4 +81,12 @@ class AdminCardServiceTest {
                 () -> adminCardService.blockCard(invalidCardId)
         );
     }
+    @Test
+    void createCard_ShouldEncryptNumber() {
+        CardCreateRequest request = new CardCreateRequest(1L, "4111111111111111", LocalDate.now().plusYears(3));
+        CardResponse response = adminCardService.createCard(request);
+
+        Card card = cardRepository.findById(response.id()).orElseThrow();
+        assertNotEquals("4111111111111111", card.getNumber()); // Номер зашифрован
+    }
 }

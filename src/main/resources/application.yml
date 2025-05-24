@@ -1,12 +1,3 @@
-#
-# application.yml — главный конфигурационный файл Spring Boot.
-
-Что нужно сделать:
-  - Указать настройки подключения к базе данных.
-  - Указать порт приложения.
-  - Настроить параметры безопасности и JWT.
-  - Включить Swagger UI.
-
 spring:
   datasource:
     url: jdbc:postgresql://db:5432/bankdb
@@ -37,6 +28,11 @@ security:
     secret: ${JWT_SECRET:798jZ7MNcEwhBnHa+Cy9ngHhccGHS1Ra+GnuT5hCdXzs2payX9OAmYc9qSAzvu6bRmkprguPkFokT6h9rGxk7A==}
     expiration: ${JWT_EXPIRATION:86400000}
 
+card:
+  encryption:
+    secret: ${CARD_ENCRYPTION_SECRET:RyWsEjq6PMHq8I56glveboyh08Ww2i7m} # Пример валидного base64
+    salt: ${CARD_ENCRYPTION_SALT:8d3a1f7e4b9c0a2d6e5f8c9b1a0d7e2f}
+
 springdoc:
   enabled: ${ENABLE_SWAGGER:true}
   api-docs:
@@ -49,6 +45,11 @@ springdoc:
     description: API для управления банковскими картами
 
 ---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
 management:
   endpoints:
     web:
@@ -57,14 +58,17 @@ management:
   endpoint:
     health:
       show-details: always
-spring:
-  config:
-    activate:
-      on-profile: prod
+
 security:
   jwt:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION:86400000}
+
+card:
+  encryption:
+    secret: ${CARD_ENCRYPTION_SECRET}
+    salt: ${CARD_ENCRYPTION_SALT}
+
 springdoc:
   enabled: true
   swagger-ui:

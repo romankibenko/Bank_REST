@@ -24,7 +24,8 @@ public record CardResponse(
         );
     }
 
-    private static String maskNumber(String number) {
-        return "**** **** **** " + number.substring(number.length() - 4);
+    private static String maskNumber(String encryptedNumber) {
+        return "**** **** **** " + encryptedNumber.substring(encryptedNumber.length() - 4);
     }
+
 }

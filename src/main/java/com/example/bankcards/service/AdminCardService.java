@@ -10,8 +10,11 @@ import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.encrypt.Encryptors;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +27,12 @@ public class AdminCardService {
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
 
+    @Value("${card.encryption.secret}")
+    private String encryptionSecret;
+
+    @Value("${card.encryption.salt}")
+    private String salt;
+
     @Autowired
     public AdminCardService(CardRepository cardRepository, UserRepository userRepository) {
         this.cardRepository = cardRepository;
@@ -32,12 +41,13 @@ public class AdminCardService {
 
     @Transactional
     public CardResponse createCard(CardCreateRequest request) {
-        Long userId = request.userId();
+        String encryptedNumber = encryptCardNumber(request.number());
+
         User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new UserNotFoundException(request.userId()));
 
         Card card = new Card();
-        card.setNumber(generateCardNumber());
+        card.setNumber(encryptedNumber);
         card.setHolderName(user.getHolderName());
         card.setExpiryDate(LocalDate.now().plusYears(3));
         card.setStatus(CardStatus.ACTIVE);
@@ -45,6 +55,10 @@ public class AdminCardService {
         card.setUser(user);
 
         return new CardResponse(cardRepository.save(card));
+    }
+    private String encryptCardNumber(String number) {
+        TextEncryptor encryptor = Encryptors.text(encryptionSecret, salt);
+        return encryptor.encrypt(number);
     }
 
     private String generateCardNumber() {
