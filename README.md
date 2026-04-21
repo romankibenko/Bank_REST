@@ -1,100 +1,109 @@
-<h1>🚀 Разработка Системы Управления Банковскими Картами</h1>
+# 💳 Bank Card Management — REST API
 
-<h2>📁 Стартовая структура</h2>
-  <p>
-    Проектная структура с директориями и описательными файлами (<code>README Controller.md</code>, <code>README Service.md</code> и т.д.) уже подготовлена.<br />
-    Все реализации нужно добавлять <strong>в соответствующие директории</strong>.
-  </p>
-  <p>
-    После завершения разработки <strong>временные README-файлы нужно удалить</strong>, чтобы они не попадали в итоговую сборку.
-  </p>
-  
-<h2>📝 Описание задачи</h2>
-  <p>Разработать backend-приложение на Java (Spring Boot) для управления банковскими картами:</p>
-  <ul>
-    <li>Создание и управление картами</li>
-    <li>Просмотр карт</li>
-    <li>Переводы между своими картами</li>
-  </ul>
+A secure backend service for managing bank cards, built with Java and Spring Boot.
 
-<h2>💳 Атрибуты карты</h2>
-  <ul>
-    <li>Номер карты (зашифрован, отображается маской: <code>**** **** **** 1234</code>)</li>
-    <li>Владелец</li>
-    <li>Срок действия</li>
-    <li>Статус: Активна, Заблокирована, Истек срок</li>
-    <li>Баланс</li>
-  </ul>
+Implements JWT authentication, role-based access control, card number encryption, fund transfers, and full REST API with Swagger documentation.
 
-<h2>🧾 Требования</h2>
+---
 
-<h3>✅ Аутентификация и авторизация</h3>
-  <ul>
-    <li>Spring Security + JWT</li>
-    <li>Роли: <code>ADMIN</code> и <code>USER</code></li>
-  </ul>
+## Features
 
-<h3>✅ Возможности</h3>
-<strong>Администратор:</strong>
-  <ul>
-    <li>Создаёт, блокирует, активирует, удаляет карты</li>
-    <li>Управляет пользователями</li>
-    <li>Видит все карты</li>
-  </ul>
+### 👤 Authentication & Authorization
+- JWT-based authentication (Spring Security)
+- Two roles: **ADMIN** and **USER**
 
-<strong>Пользователь:</strong>
-  <ul>
-    <li>Просматривает свои карты (поиск + пагинация)</li>
-    <li>Запрашивает блокировку карты</li>
-    <li>Делает переводы между своими картами</li>
-    <li>Смотрит баланс</li>
-  </ul>
+### 🔐 Admin capabilities
+- Create, activate, block, and delete cards
+- Manage users
+- View all cards across all users
 
-<h3>✅ API</h3>
-  <ul>
-    <li>CRUD для карт</li>
-    <li>Переводы между своими картами</li>
-    <li>Фильтрация и постраничная выдача</li>
-    <li>Валидация и сообщения об ошибках</li>
-  </ul>
+### 👤 User capabilities
+- View own cards with search and pagination
+- Request card blocking
+- Transfer funds between own cards
+- Check balance
 
-<h3>✅ Безопасность</h3>
-  <ul>
-    <li>Шифрование данных</li>
-    <li>Ролевой доступ</li>
-    <li>Маскирование номеров карт</li>
-  </ul>
+### 🛡️ Security
+- Card numbers are **encrypted** in the database
+- Displayed with masking only: `**** **** **** 1234`
+- Role-based endpoint protection
 
-<h3>✅ Работа с БД</h3>
-  <ul>
-    <li>PostgreSQL или MySQL</li>
-    <li>Миграции через Liquibase (<code>src/main/resources/db/migration</code>)</li>
-  </ul>
+---
 
-<h3>✅ Документация</h3>
-  <ul>
-    <li>Swagger UI / OpenAPI — <code>docs/openapi.yaml</code></li>
-    <li><code>README.md</code> с инструкцией запуска</li>
-  </ul>
+## Tech Stack
 
-<h3>✅ Развёртывание и тестирование</h3>
-  <ul>
-    <li>Docker Compose для dev-среды</li>
-    <li>Liquibase миграции</li>
-    <li>Юнит-тесты ключевой бизнес-логики</li>
-  </ul>
+| Technology | Purpose |
+|-----------|---------|
+| Java 17+ | Core language |
+| Spring Boot | Application framework |
+| Spring Security + JWT | Authentication & authorization |
+| Spring Data JPA | Data access layer |
+| PostgreSQL / MySQL | Database |
+| Liquibase | Database migrations |
+| Docker Compose | Dev environment |
+| Swagger / OpenAPI | API documentation |
 
-<h2>📊 Оценка</h2>
-  <ul>
-    <li>Соответствие требованиям</li>
-    <li>Чистота архитектуры и кода</li>
-    <li>Безопасность</li>
-    <li>Обработка ошибок</li>
-    <li>Покрытие тестами</li>
-    <li>ООП и уровни абстракции</li>
-  </ul>
+---
 
-<h2>💡 Технологии</h2>
-  <p>
-    Java 17+, Spring Boot, Spring Security, Spring Data JPA, PostgreSQL/MySQL, Liquibase, Docker, JWT, Swagger (OpenAPI)
-  </p>
+## Getting Started
+
+### Prerequisites
+- Java 17+
+- Docker & Docker Compose
+
+### Run with Docker
+
+```bash
+docker-compose up
+```
+
+### Run locally
+
+```bash
+./gradlew bootRun
+```
+
+### API Docs
+
+After startup, Swagger UI is available at:
+
+```
+http://localhost:8080/swagger-ui.html
+```
+
+OpenAPI spec: `docs/openapi.yaml`
+
+---
+
+## API Overview
+
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| `POST` | `/auth/login` | — | Get JWT token |
+| `GET` | `/cards` | ADMIN | Get all cards |
+| `POST` | `/cards` | ADMIN | Create a card |
+| `PATCH` | `/cards/{id}/block` | ADMIN | Block a card |
+| `PATCH` | `/cards/{id}/activate` | ADMIN | Activate a card |
+| `DELETE` | `/cards/{id}` | ADMIN | Delete a card |
+| `GET` | `/cards/my` | USER | Get own cards (with filter & pagination) |
+| `POST` | `/cards/my/{id}/block-request` | USER | Request card blocking |
+| `POST` | `/transfers` | USER | Transfer between own cards |
+
+---
+
+## Card Model
+
+| Field | Details |
+|-------|---------|
+| Number | Encrypted in DB, masked on display (`**** **** **** 1234`) |
+| Owner | Linked to user account |
+| Expiry date | MM/YY |
+| Status | `ACTIVE` / `BLOCKED` / `EXPIRED` |
+| Balance | Decimal, updated on transfers |
+
+---
+
+## Author
+
+**Roman Kibenko** — Java Developer & Construction Project Manager
+
