@@ -2,7 +2,8 @@ INSERT INTO users (username, password, role, active, holder_name, created_at, up
 VALUES
 (
   'admin',
-  '$2a$12$CrpWn.tVGtgMKHyCpqep0Ow/jTyeUNYwR9VRWjv2V/2GfGSCAdl52',
+  -- bcrypt hash of 'admin123'
+  '$2a$12$QW1V8ucRPFf.uQQS6tll0uF.vyMsYR8/bXbD4C7M9JtGeQ0P2hTsG',
   'ROLE_ADMIN',
   true,
   'Admin Holder',
@@ -11,7 +12,8 @@ VALUES
 ),
 (
   'user',
-  '$2a$12$HpWE5.YBX7fu.t58/Irb5.g6kTf5tFQ3CPBHSxC2vnqCDDJSLcnI2',
+  -- bcrypt hash of 'user123'
+  '$2a$12$eD.LOzPQgYt.QK/sWFN0ueTGIEs29y4ZYrKDAFx41LwcFYuIFmiuC',
   'ROLE_USER',
   true,
   'User Holder',
