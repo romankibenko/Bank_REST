@@ -1,59 +1,69 @@
-// AuthControllerTest.java
 package com.example.bankcards.controller;
 
-import com.example.bankcards.config.SecurityConfig;
 import com.example.bankcards.dto.AuthRequest;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.JwtTokenProvider;
+import com.example.bankcards.security.UserPrincipal;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AuthController.class)
-@Import(SecurityConfig.class)
+@ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
-    @Autowired
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
+    @Mock
     private AuthenticationManager authenticationManager;
 
-    @MockBean
+    @Mock
     private JwtTokenProvider jwtTokenProvider;
 
-    @MockBean
+    @Mock
     private UserRepository userRepository;
 
-    @MockBean
+    @Mock
     private PasswordEncoder passwordEncoder;
+
+    @InjectMocks
+    private AuthController authController;
+
+    @BeforeEach
+    void setup() {
+        mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
+    }
 
     @Test
     void login_ShouldReturnToken() throws Exception {
         // Given
         AuthRequest request = new AuthRequest("user@test.com", "password");
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                org.mockito.Mockito.mock(UserPrincipal.class), null);
+        when(authenticationManager.authenticate(any())).thenReturn(auth);
         when(jwtTokenProvider.generateToken(any())).thenReturn("fake-token");
 
         // When & Then
         mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType("application/json")
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").value("fake-token"));
+                .andExpect(jsonPath("$.token").value("fake-token"));
     }
 
     @Test
@@ -61,10 +71,11 @@ class AuthControllerTest {
         // Given
         AuthRequest request = new AuthRequest("newuser@test.com", "password");
         when(userRepository.existsByUsername(any())).thenReturn(false);
+        when(passwordEncoder.encode(any())).thenReturn("encoded");
 
         // When & Then
         mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType("application/json")
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(content().string("User registered successfully"));

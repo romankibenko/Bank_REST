@@ -7,14 +7,12 @@ import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.CardNotFoundException;
 import com.example.bankcards.exception.UserNotFoundException;
+import com.example.bankcards.config.CardNumberEncryptor;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.encrypt.Encryptors;
-import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,28 +24,29 @@ public class AdminCardService {
 
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
-
-    @Value("${card.encryption.secret}")
-    private String encryptionSecret;
-
-    @Value("${card.encryption.salt}")
-    private String salt;
+    private final CardNumberEncryptor cardNumberEncryptor;
 
     @Autowired
-    public AdminCardService(CardRepository cardRepository, UserRepository userRepository) {
+    public AdminCardService(CardRepository cardRepository,
+                            UserRepository userRepository,
+                            CardNumberEncryptor cardNumberEncryptor) {
         this.cardRepository = cardRepository;
         this.userRepository = userRepository;
+        this.cardNumberEncryptor = cardNumberEncryptor;
     }
 
     @Transactional
     public CardResponse createCard(CardCreateRequest request) {
-        String encryptedNumber = encryptCardNumber(request.number());
+        String originalNumber = request.number();
+        String lastFourDigits = originalNumber.substring(originalNumber.length() - 4);
+        String encryptedNumber = cardNumberEncryptor.encrypt(originalNumber);
 
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new UserNotFoundException(request.userId()));
 
         Card card = new Card();
         card.setNumber(encryptedNumber);
+        card.setLastFourDigits(lastFourDigits);
         card.setHolderName(user.getHolderName());
         card.setExpiryDate(LocalDate.now().plusYears(3));
         card.setStatus(CardStatus.ACTIVE);
@@ -55,14 +54,6 @@ public class AdminCardService {
         card.setUser(user);
 
         return new CardResponse(cardRepository.save(card));
-    }
-    private String encryptCardNumber(String number) {
-        TextEncryptor encryptor = Encryptors.text(encryptionSecret, salt);
-        return encryptor.encrypt(number);
-    }
-
-    private String generateCardNumber() {
-        return "4" + String.format("%015d", (long) (Math.random() * 1_000_000_000_000L));
     }
 
     @Transactional(readOnly = true)

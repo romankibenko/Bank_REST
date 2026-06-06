@@ -1,1 +1,194 @@
-# Здесь будет OpenAPI описание всех доступных эндпоинтов и моделей данных.
+openapi: 3.0.3
+info:
+  title: Bank Cards API
+  version: 1.0.0
+  description: API для управления банковскими картами и пользователями
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Аутентификация пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /api/auth/register:
+    post:
+      tags: [Authentication]
+      summary: Регистрация нового пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Успешная регистрация
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "User registered successfully"
+
+  /api/admin/cards:
+    post:
+      tags: [Admin Operations]
+      summary: Создание новой карты (ADMIN)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardCreateRequest'
+      responses:
+        '201':
+          description: Карта успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+
+  /api/cards:
+    get:
+      tags: [User Operations]
+      summary: Получить список карт пользователя (USER)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, BLOCKED, EXPIRED]
+      responses:
+        '200':
+          description: Список карт пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponse'
+
+  /api/cards/transfers:
+    post:
+      tags: [User Operations]
+      summary: Перевод между картами (USER)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '200':
+          description: Перевод выполнен успешно
+
+components:
+  schemas:
+    AuthRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: "user@example.com"
+        password:
+          type: string
+          example: "P@ssw0rd123"
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    CardCreateRequest:
+      type: object
+      required:
+        - userId
+        - number
+        - expiryDate
+      properties:
+        userId:
+          type: integer
+          example: 1
+        number:
+          type: string
+          pattern: '^\d{16}$'
+          example: "4111111111111111"
+        expiryDate:
+          type: string
+          format: date
+          example: "2028-12-31"
+
+    CardResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        maskedNumber:
+          type: string
+          example: "**** **** **** 1111"
+        holderName:
+          type: string
+          example: "John Doe"
+        expiryDate:
+          type: string
+          format: date
+          example: "2028-12-31"
+        status:
+          type: string
+          enum: [ACTIVE, BLOCKED, EXPIRED]
+        balance:
+          type: number
+          format: double
+          example: 1000.00
+
+    TransferRequest:
+      type: object
+      required:
+        - fromCardNumber
+        - toCardNumber
+        - amount
+      properties:
+        fromCardNumber:
+          type: string
+          example: "**** **** **** 1111"
+        toCardNumber:
+          type: string
+          example: "**** **** **** 2222"
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          example: 500.00
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

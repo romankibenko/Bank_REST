@@ -29,9 +29,7 @@ public class JwtTokenProvider {
         claims.put("roles", userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
-        String token = createToken(claims, userDetails.getUsername());
-        System.out.println("Generated token: " + token);
-        return token;
+        return createToken(claims, userDetails.getUsername());
     }
 
     private String createToken(Map<String, Object> claims, String username) {
@@ -76,7 +74,6 @@ public class JwtTokenProvider {
 
     private SecretKey getSigningKey() {
         byte[] decodedKey = Base64.getDecoder().decode(secret);
-        System.out.println("Decoded JWT secret: " + new String(decodedKey));
         return Keys.hmacShaKeyFor(decodedKey);
     }
 }

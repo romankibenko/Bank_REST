@@ -1,5 +1,6 @@
 package com.example.bankcards.service;
 
+import com.example.bankcards.config.CardNumberEncryptor;
 import com.example.bankcards.dto.CardResponse;
 import com.example.bankcards.dto.TransferRequest;
 import com.example.bankcards.entity.Card;
@@ -24,10 +25,12 @@ import java.util.List;
 public class CardService {
 
     private final CardRepository cardRepository;
+    private final CardNumberEncryptor cardNumberEncryptor;
 
     @Autowired
-    public CardService(CardRepository cardRepository) {
+    public CardService(CardRepository cardRepository, CardNumberEncryptor cardNumberEncryptor) {
         this.cardRepository = cardRepository;
+        this.cardNumberEncryptor = cardNumberEncryptor;
     }
 
     @Transactional(readOnly = true)
@@ -45,7 +48,7 @@ public class CardService {
         };
 
         return cardRepository.findAll(spec, pageable)
-                .map(this::convertToCardResponse);
+                .map(CardResponse::new);
     }
 
     @Transactional
@@ -63,10 +66,13 @@ public class CardService {
 
     @Transactional
     public void transferBetweenUserCards(Long userId, TransferRequest request) {
-        Card sourceCard = cardRepository.findByNumberAndUserId(request.fromCardNumber(), userId)
+        String encryptedFrom = cardNumberEncryptor.encrypt(request.fromCardNumber());
+        String encryptedTo = cardNumberEncryptor.encrypt(request.toCardNumber());
+
+        Card sourceCard = cardRepository.findByNumberAndUserId(encryptedFrom, userId)
                 .orElseThrow(() -> new CardNotFoundException("Source card not found"));
 
-        Card targetCard = cardRepository.findByNumber(request.toCardNumber())
+        Card targetCard = cardRepository.findByNumberAndUserId(encryptedTo, userId)
                 .orElseThrow(() -> new CardNotFoundException("Target card not found"));
 
         if (sourceCard.getBalance().compareTo(request.amount()) < 0) {
@@ -84,20 +90,5 @@ public class CardService {
         return cardRepository.findByIdAndUserId(cardId, userId)
                 .map(Card::getBalance)
                 .orElseThrow(() -> new CardNotFoundException("Card not found"));
-    }
-
-    private CardResponse convertToCardResponse(Card card) {
-        return new CardResponse(
-                card.getId(),
-                maskCardNumber(card.getNumber()),
-                card.getHolderName(),
-                card.getExpiryDate(),
-                card.getStatus(),
-                card.getBalance()
-        );
-    }
-
-    private String maskCardNumber(String number) {
-        return "**** **** **** " + number.substring(number.length() - 4);
     }
 }

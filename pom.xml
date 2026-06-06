@@ -130,6 +130,17 @@
             <version>3.26.3</version>
             <scope>test</scope>
         </dependency>
+        <!-- Testcontainers: интеграционный тест Liquibase-миграций на реальном PostgreSQL -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

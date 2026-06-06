@@ -2,6 +2,7 @@ package com.example.bankcards.service;
 
 import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.security.UserPrincipal;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,11 +26,6 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new DisabledException("User is disabled");
         }
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .authorities(user.getRole().name())
-                .disabled(!user.isActive())
-                .build();
+        return new UserPrincipal(user);
     }
 }

@@ -1,6 +1,5 @@
+-- Расширяем колонку card_number, чтобы вместить зашифрованный номер (шифротекст длиннее 16 символов).
+-- Важно: НЕ пересоздаём колонку через DROP, иначе потеряли бы данные существующих карт.
+-- Само шифрование выполняет DataMigrationService при старте приложения (идемпотентно).
 ALTER TABLE cards
-    ADD COLUMN encrypted_number VARCHAR(255);
-ALTER TABLE cards
-    DROP COLUMN card_number;
-ALTER TABLE cards
-    RENAME COLUMN encrypted_number TO card_number;
+    ALTER COLUMN card_number TYPE VARCHAR(255);

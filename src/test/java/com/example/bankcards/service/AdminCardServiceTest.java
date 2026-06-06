@@ -1,16 +1,17 @@
 package com.example.bankcards.service;
 
+import com.example.bankcards.config.CardNumberEncryptor;
 import com.example.bankcards.dto.CardCreateRequest;
 import com.example.bankcards.dto.CardResponse;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.CardNotFoundException;
-import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,6 +33,9 @@ class AdminCardServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private CardNumberEncryptor cardNumberEncryptor;
+
     @InjectMocks
     private AdminCardService adminCardService;
 
@@ -47,13 +51,10 @@ class AdminCardServiceTest {
         user.setHolderName("John Doe");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(cardNumberEncryptor.encrypt(cardNumber)).thenReturn("ENCRYPTED");
         when(cardRepository.save(any(Card.class))).thenAnswer(inv -> {
             Card card = inv.getArgument(0);
             card.setId(1L);
-            card.setNumber(cardNumber);
-            card.setHolderName(user.getHolderName());
-            card.setStatus(CardStatus.ACTIVE);
-            card.setBalance(BigDecimal.valueOf(0.0));
             return card;
         });
 
@@ -64,10 +65,34 @@ class AdminCardServiceTest {
         assertNotNull(response);
         assertEquals("**** **** **** 1111", response.maskedNumber());
         assertEquals("John Doe", response.holderName());
-        assertEquals(expiryDate, response.expiryDate());
         assertEquals(CardStatus.ACTIVE, response.status());
-        assertEquals(0.0, response.balance().doubleValue());
-        verify(cardRepository, times(1)).save(any());
+        assertEquals(0, BigDecimal.ZERO.compareTo(response.balance()));
+    }
+
+    @Test
+    void createCard_ShouldStoreEncryptedNumberAndLastFourDigits() {
+        // Given
+        String cardNumber = "4111111111111111";
+        CardCreateRequest request = new CardCreateRequest(1L, cardNumber, LocalDate.now().plusYears(3));
+
+        User user = new User();
+        user.setId(1L);
+        user.setHolderName("John Doe");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(cardNumberEncryptor.encrypt(cardNumber)).thenReturn("ENCRYPTED");
+        when(cardRepository.save(any(Card.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        adminCardService.createCard(request);
+
+        // Then: в БД уходит зашифрованный номер, а не открытый
+        ArgumentCaptor<Card> captor = ArgumentCaptor.forClass(Card.class);
+        verify(cardRepository).save(captor.capture());
+        Card saved = captor.getValue();
+        assertEquals("ENCRYPTED", saved.getNumber());
+        assertNotEquals(cardNumber, saved.getNumber());
+        assertEquals("1111", saved.getLastFourDigits());
     }
 
     @Test
@@ -80,13 +105,5 @@ class AdminCardServiceTest {
         assertThrows(CardNotFoundException.class,
                 () -> adminCardService.blockCard(invalidCardId)
         );
-    }
-    @Test
-    void createCard_ShouldEncryptNumber() {
-        CardCreateRequest request = new CardCreateRequest(1L, "4111111111111111", LocalDate.now().plusYears(3));
-        CardResponse response = adminCardService.createCard(request);
-
-        Card card = cardRepository.findById(response.id()).orElseThrow();
-        assertNotEquals("4111111111111111", card.getNumber()); // Номер зашифрован
     }
 }

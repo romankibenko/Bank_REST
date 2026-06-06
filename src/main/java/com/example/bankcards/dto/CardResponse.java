@@ -16,7 +16,7 @@ public record CardResponse(
     public CardResponse(Card card) {
         this(
                 card.getId(),
-                maskNumber(card.getNumber()),
+                maskNumber(card.getLastFourDigits()),
                 card.getHolderName(),
                 card.getExpiryDate(),
                 card.getStatus(),
@@ -24,8 +24,8 @@ public record CardResponse(
         );
     }
 
-    private static String maskNumber(String encryptedNumber) {
-        return "**** **** **** " + encryptedNumber.substring(encryptedNumber.length() - 4);
+    private static String maskNumber(String lastFourDigits) {
+        return "**** **** **** " + lastFourDigits;
     }
 
 }

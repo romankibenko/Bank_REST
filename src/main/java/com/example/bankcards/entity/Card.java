@@ -15,6 +15,9 @@ public class Card {
     @Column(name = "card_number", nullable = false, length = 255)
     private String number;
 
+    @Column(name = "last_four_digits", nullable = false, length = 4)
+    private String lastFourDigits;
+
     @Column(name = "holder_name", nullable = false)
     private String holderName;
 
@@ -43,6 +46,9 @@ public class Card {
 
     public String getNumber() { return number; }
     public void setNumber(String number) { this.number = number; }
+
+    public String getLastFourDigits() { return lastFourDigits; }
+    public void setLastFourDigits(String lastFourDigits) { this.lastFourDigits = lastFourDigits; }
 
     public String getHolderName() { return holderName; }
     public void setHolderName(String holderName) { this.holderName = holderName; }

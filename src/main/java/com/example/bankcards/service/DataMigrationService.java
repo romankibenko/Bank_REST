@@ -1,10 +1,8 @@
 package com.example.bankcards.service;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.example.bankcards.config.CardNumberEncryptor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.crypto.encrypt.Encryptors;
-import org.springframework.security.crypto.encrypt.TextEncryptor;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.entity.Card;
 import java.util.List;
@@ -12,38 +10,31 @@ import java.util.List;
 @Service
 public class DataMigrationService {
 
-    private final CardRepository cardRepository;
-    private final String encryptionSecret;
-    private final String salt;
+    /** Открытый номер карты — ровно 16 цифр. Зашифрованный (queryableText) выглядит иначе. */
+    private static final String PLAINTEXT_NUMBER_REGEX = "\\d{16}";
 
-    public DataMigrationService(
-            CardRepository cardRepository,
-            @Value("${card.encryption.secret}") String encryptionSecret,
-            @Value("${card.encryption.salt}") String salt
-    ) {
-        if (encryptionSecret == null || salt == null) {
-            throw new IllegalStateException("Encryption secrets are not configured!");
-        }
+    private final CardRepository cardRepository;
+    private final CardNumberEncryptor cardNumberEncryptor;
+
+    public DataMigrationService(CardRepository cardRepository,
+                                CardNumberEncryptor cardNumberEncryptor) {
         this.cardRepository = cardRepository;
-        this.encryptionSecret = encryptionSecret;
-        this.salt = salt;
+        this.cardNumberEncryptor = cardNumberEncryptor;
     }
 
     @Transactional
     public void encryptExistingCardNumbers() {
-        if (encryptionSecret == null || salt == null) {
-            throw new IllegalStateException("Encryption secrets not configured!");
-        }
-        TextEncryptor encryptor = Encryptors.text(encryptionSecret, salt);
         List<Card> cards = cardRepository.findAll();
 
         for (Card card : cards) {
             String originalNumber = card.getNumber();
-            if (originalNumber == null || originalNumber.isBlank()) {
+            // Идемпотентность: шифруем только ещё не зашифрованные (открытые) номера,
+            // иначе повторный запуск приложения зашифровал бы данные второй раз.
+            if (originalNumber == null || !originalNumber.matches(PLAINTEXT_NUMBER_REGEX)) {
                 continue;
             }
-            String encryptedNumber = encryptor.encrypt(originalNumber);
-            card.setNumber(encryptedNumber);
+            card.setLastFourDigits(originalNumber.substring(originalNumber.length() - 4));
+            card.setNumber(cardNumberEncryptor.encrypt(originalNumber));
             cardRepository.save(card);
         }
     }
