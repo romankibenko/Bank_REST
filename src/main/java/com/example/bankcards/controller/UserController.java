@@ -4,14 +4,12 @@ import com.example.bankcards.dto.UserCreateRequest;
 import com.example.bankcards.dto.UserResponse;
 import com.example.bankcards.service.AdminUserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/users")
+@RequestMapping("/api/admin/users")
 public class UserController {
     private final AdminUserServiceImpl adminUserServiceImpl;
 
@@ -37,11 +35,5 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(@PathVariable Long userId) {
         adminUserServiceImpl.deleteUser(userId);
-    }
-
-    @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public Page<UserResponse> getAllUsers(Pageable pageable) {
-        return adminUserServiceImpl.getAllUsers(pageable);
     }
 }

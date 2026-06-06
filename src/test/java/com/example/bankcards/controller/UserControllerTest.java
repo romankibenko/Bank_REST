@@ -40,7 +40,7 @@ class UserControllerTest {
         when(adminUserServiceImpl.blockUser(any())).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(put("/admin/users/1/block"))
+        mockMvc.perform(put("/api/admin/users/1/block"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.active").value(false));
     }
