@@ -1,6 +1,5 @@
 package com.example.bankcards.controller;
 
-import com.example.bankcards.dto.UserCreateRequest;
 import com.example.bankcards.dto.UserResponse;
 import com.example.bankcards.service.AdminUserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
